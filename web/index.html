@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vitals</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>&#128147;</text></svg>">
+<link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l2-6 4 12 2-6h6"/>
+        </svg>
+      </span>
+      <span class="brand-name">Vitals</span>
+    </div>
+
+    <nav class="nav" id="nav">
+      <a href="#live" class="active" data-section="live">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+        Live
+      </a>
+      <a href="#hrv" data-section="hrv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Variability
+      </a>
+      <a href="#history" data-section="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 4-6"/></svg>
+        History
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <span class="status" id="link-status" data-state="waiting" title="Dashboard connection to the server">
+        <span class="dot"></span><span id="link-text">connecting</span>
+      </span>
+      <span class="status" id="node-status" data-state="offline" title="Sensor node connection to the broker">
+        <span class="dot"></span><span id="node-text">no device</span>
+      </span>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <h1>Vitals <span id="device-name">&mdash;</span></h1>
+      <select id="device-picker" aria-label="Device"></select>
+      <button id="theme-toggle" title="Switch light / dark" aria-label="Switch light or dark theme">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 1.6a6.4 6.4 0 0 1 0 12.8z" fill="currentColor"/>
+        </svg>
+      </button>
+    </header>
+
+    <section id="live">
+      <div class="live-grid">
+        <div class="card hero">
+          <div class="hero-top">
+            <div style="flex:1">
+              <div class="hero-label"><span class="swatch" style="background:var(--series-1)"></span>Heart rate</div>
+              <div class="hero-figure" id="bpm-figure">
+                <span class="hero-value idle" id="bpm-value">&ndash;&ndash;</span>
+                <span class="hero-unit">bpm</span>
+              </div>
+            </div>
+            <span class="badge" id="bpm-badge" hidden></span>
+          </div>
+          <div class="hero-chart plot">
+            <canvas id="hero-canvas" height="190"></canvas>
+            <div class="tooltip" id="hero-tip"></div>
+          </div>
+          <div class="hero-foot" id="bpm-foot">waiting for a finger</div>
+        </div>
+
+        <div class="rail">
+          <div class="card">
+            <h2>Signal quality</h2>
+            <p class="sub" style="margin-bottom:0">Perfusion index &mdash; how strongly the
+               pulse modulates the light. Everything else depends on it.</p>
+            <div class="meter-row" id="signal-row" data-level="none">
+              <span class="meter"><i id="signal-fill"></i></span>
+              <span class="meter-label" id="signal-label">no signal</span>
+            </div>
+            <div class="minis" style="margin-top:var(--s4)">
+              <div>
+                <div class="label"><span class="swatch" style="background:var(--series-2)"></span>SpO&#8322;</div>
+                <div class="value idle" id="spo2-value">&ndash;&ndash;<span class="unit">%</span></div>
+                <div class="spark" id="spo2-spark"></div>
+                <div class="foot" id="spo2-foot">uncalibrated</div>
+              </div>
+              <div>
+                <div class="label">Perfusion</div>
+                <div class="value idle" id="pi-value">&ndash;&ndash;<span class="unit">%</span></div>
+                <div class="spark" id="pi-spark"></div>
+                <div class="foot" id="pi-foot">pulse strength</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="minis" style="margin-top:0">
+            <div class="card mini">
+              <div class="label">Link</div>
+              <div class="value idle" id="rssi-value">&ndash;&ndash;<span class="unit">dBm</span></div>
+              <div class="foot" id="uptime-foot">uptime &mdash;</div>
+            </div>
+            <div class="card mini">
+              <div class="label">Beats</div>
+              <div class="value idle" id="beats-value">&ndash;&ndash;</div>
+              <div class="foot" id="beats-foot">collected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:var(--s3)">
+        <h2>PPG waveform</h2>
+        <p class="sub">Infrared photoplethysmogram, 50&nbsp;Hz &mdash; the pulse as the sensor sees it</p>
+        <div class="plot"><canvas id="ppg-canvas" height="300"></canvas></div>
+      </div>
+    </section>
+
+    <section id="hrv">
+      <div class="section-head">
+        <strong>Heart rate variability</strong>
+        <span class="note" id="hrv-note">waiting for beats</span>
+      </div>
+
+      <div class="hrv-grid">
+        <div class="card mini">
+          <div class="label">RMSSD</div>
+          <div class="value idle" id="rmssd-value">&ndash;&ndash;<span class="unit">ms</span></div>
+          <div class="foot">beat-to-beat variability</div>
+        </div>
+        <div class="card mini">
+          <div class="label">SDNN</div>
+          <div class="value idle" id="sdnn-value">&ndash;&ndash;<span class="unit">ms</span></div>
+          <div class="foot">overall variability</div>
+        </div>
+        <div class="card mini">
+          <div class="label">pNN50</div>
+          <div class="value idle" id="pnn50-value">&ndash;&ndash;<span class="unit">%</span></div>
+          <div class="foot">pairs differing &gt;50&nbsp;ms</div>
+        </div>
+        <div class="card mini">
+          <div class="label">SD2 / SD1</div>
+          <div class="value idle" id="sdratio-value">&ndash;&ndash;</div>
+          <div class="foot" id="sdratio-foot">shape of the cloud</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:var(--s3)">
+        <div class="card">
+          <h2>Poincar&eacute; plot</h2>
+          <p class="sub">Each beat interval against the next &mdash; a tight cluster on the
+             diagonal means low variability, a wide cloud means high</p>
+          <div class="plot">
+            <canvas id="poincare-canvas" height="300"></canvas>
+            <div class="tooltip" id="poincare-tip"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Beat intervals</h2>
+          <p class="sub">ms between beats &mdash; the slow wave is breathing speeding
+             and slowing the heart</p>
+          <div class="plot">
+            <canvas id="tacho-canvas" height="300"></canvas>
+            <div class="tooltip" id="tacho-tip"></div>
+          </div>
+          <div class="empty" id="tacho-empty">Waiting for beats.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="history">
+      <div class="section-head">
+        <strong>History</strong>
+        <select id="range-picker" aria-label="Time range"></select>
+        <button id="table-toggle" aria-pressed="false">Table view</button>
+        <span class="note" id="history-note"></span>
+      </div>
+
+      <!-- Two measures on different scales get two charts. Never a second y-axis. -->
+      <div class="grid-2">
+        <div class="card">
+          <h2>Heart rate</h2>
+          <p class="sub">bpm &mdash; averaged per bucket</p>
+          <div class="plot">
+            <canvas id="bpm-canvas" height="320"></canvas>
+            <div class="tooltip" id="bpm-tip"></div>
+          </div>
+          <div class="empty" id="bpm-empty">No measurements in this range yet.</div>
+        </div>
+        <div class="card">
+          <h2>Oxygen saturation</h2>
+          <p class="sub">% SpO&#8322; &mdash; averaged per bucket</p>
+          <div class="plot">
+            <canvas id="spo2-canvas" height="320"></canvas>
+            <div class="tooltip" id="spo2-tip"></div>
+          </div>
+          <div class="empty" id="spo2-empty">No measurements in this range yet.</div>
+        </div>
+      </div>
+
+      <section class="card tablewrap" id="table-view" hidden>
+        <table>
+          <thead><tr><th>Time</th><th>Heart rate (bpm)</th><th>SpO&#8322; (%)</th><th>Perfusion (%)</th><th>Samples</th></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </section>
+    </section>
+
+    <footer>
+      <strong>Not a medical device.</strong> The MAX30102 is a hobbyist optical sensor and these
+      readings are uncalibrated. Use them to learn about photoplethysmography &mdash; never to
+      make a health decision.
+    </footer>
+  </main>
+
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

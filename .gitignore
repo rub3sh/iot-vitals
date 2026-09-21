@@ -1,0 +1,14 @@
+# secrets
+firmware/include/secrets.h
+server/.env
+
+# build artifacts
+firmware/.pio/
+node_modules/
+server/data/*.db
+server/data/*.db-*
+
+# editor
+.vscode/
+.DS_Store
+.run/

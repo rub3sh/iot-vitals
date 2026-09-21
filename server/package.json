@@ -1,0 +1,18 @@
+{
+  "name": "iot-vitals-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MQTT ingest + history + live dashboard for the XIAO ESP32C3 pulse oximeter",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "dev": "node --watch --env-file-if-exists=.env src/index.js"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.1",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}
